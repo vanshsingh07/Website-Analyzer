@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SiteShield — Intelligence Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ═══ BACKGROUND ORBS ═══ -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+  <div class="noise-overlay"></div>
+
+  <!-- ═══ HERO / INPUT SECTION ═══ -->
+  <section class="hero" id="hero">
+    <nav class="navbar">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">WebsiteAnalyzer</span>
+      </div>
+      <div class="nav-badge">Intelligence Platform v2 by vansh</div>
+    </nav>
+
+    <div class="hero-content">
+      <div class="hero-tag">OSINT · Security · Intelligence</div>
+      <h1 class="hero-title">
+        Uncover What<br/>
+        <span class="gradient-text">Lies Beneath</span><br/>
+        Any Website
+      </h1>
+      <p class="hero-sub">
+        Enter any domain or IP address to receive a full intelligence briefing —
+        risk scores, SSL analysis, technology fingerprinting, and more.
+      </p>
+
+      <div class="search-card">
+        <div class="search-inner">
+          <div class="search-icon">⌕</div>
+          <input
+            id="targetInput"
+            type="text"
+            placeholder="e.g.  example.com  or  8.8.8.8"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="analyzeBtn" onclick="startAnalysis()">
+            <span class="btn-text">Analyze</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </div>
+        <div class="search-hints">
+          <span>Try:</span>
+          <button class="hint-chip" onclick="quickFill('iilm.edu')">iilm.edu</button>
+          <button class="hint-chip" onclick="quickFill('google.com')">google.com</button>
+          <button class="hint-chip" onclick="quickFill('13.234.230.146')">13.234.230.146</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ LOADING SCREEN ═══ -->
+  <div class="loading-screen" id="loadingScreen" style="display:none">
+    <div class="loading-card">
+      <div class="radar-wrap">
+        <div class="radar-ring r1"></div>
+        <div class="radar-ring r2"></div>
+        <div class="radar-ring r3"></div>
+        <div class="radar-dot"></div>
+        <div class="radar-sweep"></div>
+      </div>
+      <div class="loading-status" id="loadingStatus">Initialising scan…</div>
+      <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBarFill"></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <section class="dashboard" id="dashboard" style="display:none">
+
+    <!-- Top bar -->
+    <div class="dash-header">
+      <div class="dash-header-left">
+        <button class="back-btn" onclick="resetApp()">← New Scan</button>
+        <div class="dash-target" id="dashTarget"></div>
+      </div>
+      <div class="dash-meta" id="dashMeta"></div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="basic"      onclick="switchTab('basic')">
+        <span class="tab-icon">◈</span> Basic Info
+      </button>
+      <button class="tab-btn"        data-tab="intel"      onclick="switchTab('intel')">
+        <span class="tab-icon">◎</span> IP Intel
+      </button>
+      <button class="tab-btn"        data-tab="risk"       onclick="switchTab('risk')">
+        <span class="tab-icon">◬</span> Risk Analysis
+      </button>
+      <button class="tab-btn"        data-tab="ssl"        onclick="switchTab('ssl')">
+        <span class="tab-icon">◫</span> SSL / TLS
+      </button>
+      <button class="tab-btn"        data-tab="trust"      onclick="switchTab('trust')">
+        <span class="tab-icon">◉</span> Trust Score
+      </button>
+    </nav>
+
+    <!-- ── TAB: BASIC INFO ── -->
+    <div class="tab-pane active" id="tab-basic">
+      <div class="section-title">Basic Information</div>
+      <div class="cards-grid cols-3">
+        <div class="info-card">
+          <div class="card-label">Domain / Host</div>
+          <div class="card-value mono" id="bi-domain">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">Resolved IP</div>
+          <div class="card-value mono" id="bi-ip">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">Country</div>
+          <div class="card-value" id="bi-country">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">City / Region</div>
+          <div class="card-value" id="bi-city">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">ISP</div>
+          <div class="card-value" id="bi-isp">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">Organisation / ASN</div>
+          <div class="card-value small" id="bi-org">—</div>
+        </div>
+      </div>
+
+      <div class="section-title mt">Website Metadata</div>
+      <div class="meta-block">
+        <div class="meta-row">
+          <span class="meta-key">Page Title</span>
+          <span class="meta-val" id="bi-title">—</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Description</span>
+          <span class="meta-val" id="bi-desc">—</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Site Type</span>
+          <span class="meta-val badge-type" id="bi-sitetype">—</span>
+        </div>
+      </div>
+
+      <div class="section-title mt">Detected Technologies</div>
+      <div class="tech-tags" id="techTags"></div>
+
+      <div class="view-details-wrap">
+        <button class="view-details-btn" id="viewDetailsBtn" onclick="openModal()">
+          ✦ View AI Intelligence Report
+        </button>
+      </div>
+    </div>
+
+    <!-- ── TAB: IP INTELLIGENCE ── -->
+    <div class="tab-pane" id="tab-intel">
+      <div class="section-title">IP Intelligence</div>
+      <div class="cards-grid cols-2">
+        <div class="info-card accent-card">
+          <div class="card-label">IP Classification</div>
+          <div class="card-value large" id="ii-type">—</div>
+        </div>
+        <div class="info-card accent-card">
+          <div class="card-label">Network Type</div>
+          <div class="card-value large" id="ii-network">—</div>
+        </div>
+      </div>
+
+      <div class="intel-flags" id="intelFlags"></div>
+
+      <div class="intel-detail-grid">
+        <div class="intel-stat">
+          <div class="is-label">Hosting / Cloud</div>
+          <div class="is-val" id="ii-hosting">—</div>
+        </div>
+        <div class="intel-stat">
+          <div class="is-label">VPN / Proxy Detected</div>
+          <div class="is-val" id="ii-proxy">—</div>
+        </div>
+        <div class="intel-stat">
+          <div class="is-label">Geolocation</div>
+          <div class="is-val" id="ii-geo">—</div>
+        </div>
+        <div class="intel-stat">
+          <div class="is-label">ASN</div>
+          <div class="is-val mono" id="ii-asn">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: RISK ANALYSIS ── -->
+    <div class="tab-pane" id="tab-risk">
+      <div class="section-title">Risk Analysis</div>
+
+      <div class="risk-hero">
+        <div class="risk-gauge-wrap">
+          <svg class="risk-gauge" viewBox="0 0 200 120">
+            <path class="gauge-bg"   d="M 20 110 A 90 90 0 0 1 180 110" />
+            <path class="gauge-fill" id="gaugeFill" d="M 20 110 A 90 90 0 0 1 180 110" stroke-dasharray="0 283" />
+            <text class="gauge-score" id="gaugeScore" x="100" y="95" text-anchor="middle">0</text>
+            <text class="gauge-label" x="100" y="112" text-anchor="middle">RISK SCORE</text>
+          </svg>
+          <div class="risk-badge" id="riskBadge">LOW</div>
+        </div>
+        <div class="risk-summary" id="riskSummary"></div>
+      </div>
+
+      <div class="section-title mt">Risk Factors</div>
+      <div class="risk-reasons" id="riskReasons"></div>
+    </div>
+
+    <!-- ── TAB: SSL / TLS ── -->
+    <div class="tab-pane" id="tab-ssl">
+      <div class="section-title">SSL / TLS Certificate</div>
+
+      <div class="ssl-status-card" id="sslStatusCard">
+        <div class="ssl-icon" id="sslIcon">🔒</div>
+        <div class="ssl-status-text" id="sslStatusText">Checking…</div>
+        <div class="ssl-status-sub"  id="sslStatusSub"></div>
+      </div>
+
+      <div class="cards-grid cols-3" id="sslDetails" style="display:none">
+        <div class="info-card">
+          <div class="card-label">Issued To</div>
+          <div class="card-value mono small" id="ssl-subject">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">Issuer (CA)</div>
+          <div class="card-value small" id="ssl-issuer">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">Valid From</div>
+          <div class="card-value small" id="ssl-from">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">Expires</div>
+          <div class="card-value small" id="ssl-to">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">Days Remaining</div>
+          <div class="card-value large" id="ssl-days">—</div>
+        </div>
+        <div class="info-card">
+          <div class="card-label">Self-Signed</div>
+          <div class="card-value" id="ssl-self">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: TRUST SCORE ── -->
+    <div class="tab-pane" id="tab-trust">
+      <div class="section-title">Trust Score</div>
+
+      <div class="trust-hero">
+        <div class="trust-ring-wrap">
+          <svg class="trust-ring" viewBox="0 0 160 160">
+            <circle class="tr-bg"   cx="80" cy="80" r="65" />
+            <circle class="tr-fill" id="trustCircle" cx="80" cy="80" r="65"
+                    stroke-dasharray="0 408" stroke-dashoffset="-102" />
+            <text class="tr-score" id="trustScore" x="80" y="88" text-anchor="middle">0</text>
+            <text class="tr-label" x="80" y="104" text-anchor="middle">/ 100</text>
+          </svg>
+        </div>
+        <div class="trust-stars" id="trustStars"></div>
+        <div class="trust-verdict" id="trustVerdict"></div>
+      </div>
+
+      <div class="section-title mt">Trust Factors</div>
+      <div class="trust-factors" id="trustFactors"></div>
+    </div>
+
+  </section><!-- /dashboard -->
+
+  <!-- ═══ MODAL / AI POPUP ═══ -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-card" id="modalCard">
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      <div class="modal-header">
+        <div class="modal-icon">◈</div>
+        <div>
+          <div class="modal-title">AI Intelligence Report</div>
+          <div class="modal-sub" id="modalSub">Generating…</div>
+        </div>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <div class="modal-loader">
+          <div class="ml-dot"></div>
+          <div class="ml-dot"></div>
+          <div class="ml-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
