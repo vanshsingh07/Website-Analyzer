@@ -1,4 +1,4 @@
-# 🛡 SiteShield — Website Intelligence & Security Analyzer
+# 🛡 WebsiteAnalyzer — Website Intelligence & Security Analyzer
 
 A premium, glassmorphism-style multi-tab dashboard that lets you analyze any
 domain or IP address for security risks, SSL status, geolocation, technology
